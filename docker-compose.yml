@@ -1,0 +1,45 @@
+services:
+  # Node.js application environment
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+      target: ${DOCKER_STAGE:-local}
+    container_name: app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  # MongoDB database
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-nestjs-base}
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongodb/init:/docker-entrypoint-initdb.d
+    command: mongod --auth
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules:
+  mongodb_data:
