@@ -1,0 +1,47 @@
+# Multi-stage Dockerfile for NestJS Monorepo with Bun
+ARG APP_NAME
+
+# Stage 1: Builder
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies for native modules (bcrypt, etc.)
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
+COPY package.json bun.lock ./
+COPY nest-cli.json ./
+COPY tsconfig*.json ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY apps apps/
+COPY libs libs/
+
+# Build specific application
+ARG APP_NAME
+RUN bun x @nestjs/cli build ${APP_NAME}
+
+# Stage 2: Production
+FROM oven/bun:1-alpine
+
+WORKDIR /app
+
+ARG APP_NAME
+ENV APP_NAME=${APP_NAME}
+
+# Copy package files (for reference only)
+COPY package.json ./
+
+# Copy built application and node_modules from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+
+# Expose port (will be overridden by docker-compose)
+EXPOSE 3000
+
+# Start application with Bun - find main.js dynamically
+CMD ["sh", "-c", "MAIN_FILE=$(find dist -name main.js -path \"*/apps/${APP_NAME}/*\" | head -1) && bun $MAIN_FILE"]

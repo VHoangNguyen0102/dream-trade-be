@@ -1,104 +1,187 @@
-# NestJS Base Project
+# Dream Trade - NestJS Monorepo
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+**NestJS Monorepo** cho 6 microservices với shared libraries.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 🏗️ Cấu trúc Monorepo
 
-<p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-<p align="center">
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-  <a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-  <a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-  <a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-  <a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-  <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-
-![SAST](https://github.com/legiaquan/nestjs-base/actions/workflows/sast.yml/badge.svg)
-
-## Documentation
-
-For detailed information about the project, please refer to the following documentation:
-
-- [System Architecture](docs/ARCHITECTURE.md) - Detailed system design and architecture
-- [Development Guide](docs/DEVELOPMENT.md) - Setup, workflow, and best practices
-- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute to the project
-
-## Project Setup
-
-```bash
-$ bun install
+```
+dream-trade-be/
+├── apps/                    # Tất cả microservices
+│   ├── market/             # Market Service (Port 3001)
+│   ├── auth/               # Auth Service (Port 3005)
+│   ├── crawler/            # Crawler Service (Port 3002)
+│   ├── gateway/            # API Gateway (Port 3000)
+│   ├── ai-analysis/        # AI Analysis Service (Port 3003)
+│   └── realtime/           # Realtime WebSocket (Port 3004)
+│
+├── libs/                    # Shared libraries
+│   └── common/             # Interfaces, types, utils
+│
+├── nest-cli.json           # NestJS monorepo config
+├── package.json            # Single package.json cho tất cả
+├── Dockerfile.monorepo     # Dockerfile cho monorepo
+└── docker-compose.yml      # Docker orchestration
 ```
 
-## Running the app
+## 🚀 Quick Start
+
+### Development (chạy local)
 
 ```bash
-# development
-$ bun run start
+# Install dependencies (1 lần duy nhất)
+npm install
 
-# watch mode
-$ bun run start:dev
+# Chạy từng service
+npm run start:market
+npm run start:auth
+npm run start:crawler
+npm run start:gateway
+npm run start:ai-analysis
+npm run start:realtime
 
-# production mode
-$ bun run start:prod
+# Hoặc chạy tất cả (cần nhiều terminal)
+npm run start:dev  # Default service
 ```
 
-## Test
+### Production (Docker)
 
 ```bash
-# unit tests
-$ bun run test
+# Build và chạy tất cả services
+docker compose up -d
 
-# e2e tests
-$ bun run test:e2e
+# Xem logs
+docker compose logs -f
 
-# test coverage
-$ bun run test:cov
+# Stop
+docker compose down
 ```
 
-## Deployment
+## 📦 Services
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Service | Port | Command | Tech Stack |
+|---------|------|---------|------------|
+| **Gateway** | 3000 | `npm run start:gateway` | NestJS + Proxy |
+| **Market** | 3001 | `npm run start:market` | NestJS + MongoDB |
+| **Crawler** | 3002 | `npm run start:crawler` | NestJS + Bull Queue |
+| **AI Analysis** | 3003 | `npm run start:ai-analysis` | NestJS + Sentiment |
+| **Realtime** | 3004 | `npm run start:realtime` | NestJS + WebSocket |
+| **Auth** | 3005 | `npm run start:auth` | NestJS + JWT |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🧪 Testing
 
 ```bash
-$ bun install -g @nestjs/mau
-$ mau deploy
+# Test tất cả services
+npm test
+
+# Test 1 service
+npm test -- market
+
+# Test coverage
+npm run test:cov
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🛠️ Development
 
-## Resources
+### Tạo service mới
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# NestJS CLI tự động tạo trong monorepo
+nest generate app new-service
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Tạo shared library
 
-## Support
+```bash
+nest generate library my-lib
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Share code giữa services
 
-## Stay in touch
+```typescript
+// apps/market/src/market.service.ts
+import { SomeInterface } from '@app/common';
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🔑 Environment Variables
 
-## License
+Tạo file `.env` ở root:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```env
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/dream-trade
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=1h
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Service Ports
+MARKET_PORT=3001
+AUTH_PORT=3005
+CRAWLER_PORT=3002
+GATEWAY_PORT=3000
+AI_PORT=3003
+REALTIME_PORT=3004
+```
+
+## 📊 API Documentation
+
+Mỗi service có Swagger UI riêng:
+
+- Gateway: http://localhost:3000/api
+- Market: http://localhost:3001/api
+- Crawler: http://localhost:3002/api
+- AI Analysis: http://localhost:3003/api
+- Auth: http://localhost:3005/api
+
+## ✅ Ưu điểm Monorepo
+
+1. **1 package.json** - Install dependencies 1 lần
+2. **Share code dễ** - Import từ `@app/common`
+3. **Build tất cả** - `npm run build:all`
+4. **TypeScript paths** - Tự động resolve
+5. **NestJS CLI** - Generate code tự động
+
+## 🐳 Docker
+
+```bash
+# Build tất cả images
+docker compose build
+
+# Build 1 service
+docker compose build market-service
+
+# Chạy infrastructure only
+docker compose up -d mongodb redis
+
+# Restart 1 service
+docker compose restart market-service
+```
+
+## 📝 Scripts
+
+```json
+{
+  "start:market": "nest start market --watch",
+  "start:auth": "nest start auth --watch",
+  "start:crawler": "nest start crawler --watch",
+  "start:gateway": "nest start gateway --watch",
+  "start:ai-analysis": "nest start ai-analysis --watch",
+  "start:realtime": "nest start realtime --watch",
+  "build:all": "nest build market && nest build auth && ..."
+}
+```
+
+## 🎯 Next Steps
+
+1. Run `npm install`
+2. Start MongoDB & Redis: `docker compose up -d mongodb redis`
+3. Run services: `npm run start:market`, `npm run start:auth`, etc.
+4. Test API: http://localhost:3000/api
+
+---
+
+**Team**: Minh (Market), Nguyên (Crawler), Lương (AI), Lâm (Realtime)
