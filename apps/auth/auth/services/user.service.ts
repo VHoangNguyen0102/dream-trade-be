@@ -5,9 +5,7 @@ import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
-  ) {}
+  constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
 
   async create(userData: Partial<User>): Promise<User> {
     const user = new this.userModel(userData);
@@ -15,7 +13,7 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email: email.toLowerCase() }).exec();
+    return this.userModel.findOne({ email: email.toLowerCase() }).select('+password').exec();
   }
 
   async findById(id: string): Promise<User | null> {
@@ -25,12 +23,6 @@ export class UserService {
   async updatePassword(userId: string, hashedPassword: string): Promise<void> {
     await this.userModel.findByIdAndUpdate(userId, {
       password: hashedPassword,
-    });
-  }
-
-  async updateLastLogin(userId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      lastLoginAt: new Date(),
     });
   }
 
