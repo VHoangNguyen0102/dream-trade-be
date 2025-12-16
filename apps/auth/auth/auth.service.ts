@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from './services/user.service';
@@ -15,43 +15,45 @@ interface JwtPayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
-    private readonly userSessionService: UserSessionService,
+    private readonly userSessionService: UserSessionService
   ) {}
 
   /**
    * Register new user
    */
   async register(registerDto: RegisterDto) {
+    this.logger.log(`Starting registration for: ${registerDto.email}`);
+
     // Check if user exists
     const existingUser = await this.userService.findByEmail(registerDto.email);
     if (existingUser) {
+      this.logger.warn(`Registration failed: Email ${registerDto.email} already exists`);
       throw new BadRequestException('User with this email already exists');
     }
 
     // Hash password
+    this.logger.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    // Create user
+    // Create user - email, password, firstName, lastName
+    this.logger.log('Creating user in database...');
     const user = await this.userService.create({
-      ...registerDto,
+      email: registerDto.email,
       password: hashedPassword,
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
     });
+    this.logger.log(`User created with ID: ${user._id}`);
 
     // Generate tokens
+    this.logger.log('Generating JWT tokens...');
     const tokens = await this.generateTokens(user._id.toString(), user.email);
-
-    // Create session
-    await this.userSessionService.create({
-      userId: user._id.toString(),
-      token: tokens.refreshToken,
-      deviceType: registerDto.deviceType || 'web',
-      ipAddress: registerDto.ipAddress,
-      userAgent: registerDto.userAgent,
-    });
 
     return {
       user: {
@@ -76,15 +78,6 @@ export class AuthService {
 
     // Generate tokens
     const tokens = await this.generateTokens(user._id.toString(), user.email);
-
-    // Create session
-    await this.userSessionService.create({
-      userId: user._id.toString(),
-      token: tokens.refreshToken,
-      deviceType: loginDto.deviceType || 'web',
-      ipAddress: loginDto.ipAddress,
-      userAgent: loginDto.userAgent,
-    });
 
     return {
       user: {
@@ -169,10 +162,7 @@ export class AuthService {
     }
 
     // Verify old password
-    const isOldPasswordValid = await bcrypt.compare(
-      changePasswordDto.oldPassword,
-      user.password,
-    );
+    const isOldPasswordValid = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
     if (!isOldPasswordValid) {
       throw new BadRequestException('Invalid old password');
     }
@@ -201,8 +191,6 @@ export class AuthService {
     return {
       id: user._id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
       createdAt: user.createdAt,
     };
   }
