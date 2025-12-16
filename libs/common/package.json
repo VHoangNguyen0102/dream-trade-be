@@ -1,6 +1,0 @@
-{
-  "name": "@app/common",
-  "version": "0.0.1",
-  "description": "Shared interfaces, types, and utilities",
-  "main": "index.ts"
-}
