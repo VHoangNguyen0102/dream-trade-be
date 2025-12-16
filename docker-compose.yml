@@ -8,42 +8,46 @@ volumes:
   redis-data:
 
 services:
+  # MongoDB on Cloud - No need for local container
+  # Already using MongoDB Atlas: mongodb+srv://...
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     networks:
       - dream-trade-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
 
-  market-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.monorepo
-      args:
-        APP_NAME: market
-    image: dream-trade/market-service:latest
-    container_name: market-service
-    ports:
-      - "3001:3001"
-    environment:
-      PORT: 3001
-      MONGODB_URI: ${MONGODB_URI}
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
+  # ========== ONLY AUTH SERVICE ACTIVE ==========
+
+  # market-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.monorepo
+  #     args:
+  #       APP_NAME: market
+  #   image: dream-trade/market-service:latest
+  #   container_name: market-service
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     PORT: 3001
+  #     MONGODB_URI: ${MONGODB_URI}
+  #     REDIS_URL: redis://redis:6379
+  #     NODE_ENV: production
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
 
   auth-service:
     build:
@@ -54,39 +58,41 @@ services:
     image: dream-trade/auth-service:latest
     container_name: auth-service
     ports:
-      - "3005:3005"
+      - '3005:3005'
     environment:
       PORT: 3005
       MONGODB_URI: ${MONGODB_URI}
-      JWT_SECRET: your-super-secret-key-change-in-production
-      JWT_EXPIRES_IN: 1h
-      JWT_REFRESH_EXPIRES_IN: 7d
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      FRONTEND_URL: http://localhost:3000
       NODE_ENV: production
     networks:
       - dream-trade-network
     restart: unless-stopped
 
-  crawler-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.monorepo
-      args:
-        APP_NAME: crawler
-    image: dream-trade/crawler-service:latest
-    container_name: crawler-service
-    ports:
-      - "3002:3002"
-    environment:
-      PORT: 3002
-      MONGODB_URI: ${MONGODB_URI}
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
+  # crawler-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.monorepo
+  #     args:
+  #       APP_NAME: crawler
+  #   image: dream-trade/crawler-service:latest
+  #   container_name: crawler-service
+  #   ports:
+  #     - "3002:3002"
+  #   environment:
+  #     PORT: 3002
+  #     MONGODB_URI: ${MONGODB_URI}
+  #     REDIS_URL: redis://redis:6379
+  #     NODE_ENV: production
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
 
   # ai-analysis-service:
   #   build:
@@ -109,49 +115,49 @@ services:
   #     - dream-trade-network
   #   restart: unless-stopped
 
-  realtime-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.monorepo
-      args:
-        APP_NAME: realtime
-    image: dream-trade/realtime-service:latest
-    container_name: realtime-service
-    ports:
-      - "3004:3004"
-    environment:
-      PORT: 3004
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
+  # realtime-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.monorepo
+  #     args:
+  #       APP_NAME: realtime
+  #   image: dream-trade/realtime-service:latest
+  #   container_name: realtime-service
+  #   ports:
+  #     - "3004:3004"
+  #   environment:
+  #     PORT: 3004
+  #     REDIS_URL: redis://redis:6379
+  #     NODE_ENV: production
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
 
-  gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile.monorepo
-      args:
-        APP_NAME: gateway
-    image: dream-trade/gateway:latest
-    container_name: gateway
-    ports:
-      - "3000:3000"
-    environment:
-      PORT: 3000
-      MARKET_SERVICE_URL: http://market-service:3001
-      CRAWLER_SERVICE_URL: http://crawler-service:3002
-      # AI_SERVICE_URL: http://ai-analysis-service:3003
-      AUTH_SERVICE_URL: http://auth-service:3005
-      NODE_ENV: production
-    depends_on:
-      - market-service
-      - crawler-service
-      # - ai-analysis-service
-      - auth-service
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
+  # gateway:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.monorepo
+  #     args:
+  #       APP_NAME: gateway
+  #   image: dream-trade/gateway:latest
+  #   container_name: gateway
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     PORT: 3000
+  #     MARKET_SERVICE_URL: http://market-service:3001
+  #     CRAWLER_SERVICE_URL: http://crawler-service:3002
+  #     # AI_SERVICE_URL: http://ai-analysis-service:3003
+  #     AUTH_SERVICE_URL: http://auth-service:3005
+  #     NODE_ENV: production
+  #   depends_on:
+  #     - market-service
+  #     - crawler-service
+  #     # - ai-analysis-service
+  #     - auth-service
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
