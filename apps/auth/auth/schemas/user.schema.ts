@@ -1,34 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { BaseSchema, baseSchemaOptions } from '@app/database';
 
-@Schema({ timestamps: true })
-export class User extends Document {
-  @Prop({ required: true, unique: true, lowercase: true })
+/**
+ * User Collection Schema
+ * Fields: id (auto), email, password, firstName, lastName, createdAt, updatedAt, isDeleted
+ */
+@Schema(baseSchemaOptions)
+export class User extends BaseSchema {
+  // id tự động có từ MongoDB _id (kế thừa từ BaseSchema)
+
+  @Prop({ type: String, required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true, select: false }) // select: false để không trả password trong queries
   password: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true, trim: true })
   firstName: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true, trim: true })
   lastName: string;
-
-  @Prop({ default: true })
-  isActive: boolean;
-
-  @Prop({ type: Date })
-  lastLoginAt?: Date;
-
-  @Prop()
-  createdAt: Date;
-
-  @Prop()
-  updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Indexes
-UserSchema.index({ email: 1 });
+// Indexes cho performance
+UserSchema.index({ email: 1 }); // Unique index cho email
