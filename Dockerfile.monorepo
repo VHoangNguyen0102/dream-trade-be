@@ -36,9 +36,11 @@ ENV APP_NAME=${APP_NAME}
 # Copy package files (for reference only)
 COPY package.json ./
 
-# Copy built application and node_modules from builder
+# Copy built application, libs, and node_modules from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/libs ./libs
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/tsconfig*.json ./
 
 # Expose port (will be overridden by docker-compose)
 EXPOSE 3000

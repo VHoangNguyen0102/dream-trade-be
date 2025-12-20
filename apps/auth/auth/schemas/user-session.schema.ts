@@ -3,28 +3,28 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class UserSession extends Document {
-  @Prop({ required: true, index: true })
+  @Prop({ type: String, required: true, index: true })
   userId: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   token: string;
 
-  @Prop({ enum: ['web', 'mobile', 'desktop'], default: 'web' })
+  @Prop({ type: String, enum: ['web', 'mobile', 'desktop'], default: 'web' })
   deviceType: string;
 
-  @Prop()
+  @Prop({ type: String })
   ipAddress?: string;
 
-  @Prop()
+  @Prop({ type: String })
   userAgent?: string;
 
   @Prop({ type: Date, default: Date.now })
   lastActivityAt: Date;
 
-  @Prop()
+  @Prop({ type: Date })
   createdAt: Date;
 
-  @Prop()
+  @Prop({ type: Date })
   updatedAt: Date;
 }
 
