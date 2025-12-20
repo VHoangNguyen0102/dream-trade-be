@@ -6,6 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -111,5 +112,33 @@ export class AuthController {
   @ApiOperation({ summary: 'Get user active sessions' })
   async getSessions(@Request() req) {
     return this.authService.getUserSessions(req.user.sub);
+  }
+
+  @Post('google')
+  @ApiOperation({ summary: 'Login with Google OAuth' })
+  @ApiBody({ type: GoogleLoginDto })
+  async googleLogin(@Body() googleLoginDto: GoogleLoginDto, @Res({ passthrough: true }) res: Response) {
+    this.logger.log('Google login request received');
+    const result = await this.authService.googleLogin(googleLoginDto);
+
+    // Set httpOnly cookies for tokens
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    this.logger.log(`Google login successful for user: ${result.user.id}`);
+
+    // Return user info and tokens (tokens in response body for flexibility)
+    return result;
   }
 }
