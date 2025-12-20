@@ -12,7 +12,7 @@ export class User extends BaseSchema {
   @Prop({ type: String, required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
-  @Prop({ type: String, required: true, select: false }) // select: false để không trả password trong queries
+  @Prop({ type: String, required: false, select: false }) // Optional for OAuth users
   password: string;
 
   @Prop({ type: String, required: true, trim: true })
@@ -20,6 +20,15 @@ export class User extends BaseSchema {
 
   @Prop({ type: String, required: true, trim: true })
   lastName: string;
+
+  @Prop({ type: String, required: false, unique: true, sparse: true }) // Google ID for OAuth users
+  googleId: string;
+
+  @Prop({ type: String, required: false }) // User avatar URL
+  avatar: string;
+
+  @Prop({ type: Boolean, default: false }) // Email verification status
+  isVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
