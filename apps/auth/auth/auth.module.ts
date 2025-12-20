@@ -13,6 +13,7 @@ import { TokenBlacklist, TokenBlacklistSchema } from './schemas/token-blacklist.
 import { UserService } from './services/user.service';
 import { UserSessionService } from './services/user-session.service';
 import { TokenBlacklistService } from './services/token-blacklist.service';
+import { GoogleAuthService } from './services/google-auth.service';
 import { UserRepository } from './repositories/user.repository';
 
 @Module({
@@ -30,7 +31,7 @@ import { UserRepository } from './repositories/user.repository';
       }),
     }),
   ],
-  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, UserRepository, LocalStrategy, JwtStrategy],
+  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, GoogleAuthService, UserRepository, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService, UserService],
 })

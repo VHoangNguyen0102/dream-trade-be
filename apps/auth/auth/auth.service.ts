@@ -4,9 +4,11 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from './services/user.service';
 import { UserSessionService } from './services/user-session.service';
 import { TokenBlacklistService } from './services/token-blacklist.service';
+import { GoogleAuthService } from './services/google-auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 
 interface JwtPayload {
   sub: string;
@@ -21,7 +23,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
-    private readonly userSessionService: UserSessionService
+    private readonly userSessionService: UserSessionService,
+    private readonly googleAuthService: GoogleAuthService
   ) {}
 
   /**
@@ -220,6 +223,42 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiresIn: 3600, // 1 hour in seconds
+    };
+  }
+
+  /**
+   * Login with Google OAuth
+   */
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    this.logger.log('Processing Google login...');
+
+    // Verify Google ID Token and get user info
+    const googleUserInfo = await this.googleAuthService.verifyGoogleToken(googleLoginDto.idToken);
+
+    // Find or create user
+    const user = await this.googleAuthService.findOrCreateUser(googleUserInfo);
+
+    // Generate JWT tokens
+    const tokens = await this.generateTokens(user._id.toString(), user.email);
+
+    // Create user session
+    await this.userSessionService.create({
+      userId: user._id.toString(),
+      token: tokens.refreshToken,
+      userAgent: 'Google OAuth',
+      ipAddress: 'N/A',
+    });
+
+    return {
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        isVerified: user.isVerified,
+      },
+      ...tokens,
     };
   }
 }
