@@ -10,7 +10,9 @@ import { CrawlerModule } from './crawler/crawler.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/news-crawler',
+      process.env.CRAWLER_MONGODB_URI || 
+      process.env.MONGODB_URI || 
+      'mongodb://localhost:27017/news-crawler',
     ),
     BullModule.forRoot({
       redis: {
