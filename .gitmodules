@@ -1,7 +1,0 @@
-[submodule "apps/crawler"]
-	path = apps/crawler
-	url = https://github.com/Luongsosad/NeuroScraper.git
-
-[submodule "apps/ai-analysis"]
-	path = apps/ai-analysis
-	url = https://github.com/Luongsosad/NeuroAI.git
