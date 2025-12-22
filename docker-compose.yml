@@ -49,6 +49,7 @@ services:
   #     - dream-trade-network
   #   restart: unless-stopped
 
+  # auth-service
   auth-service:
     build:
       context: .
@@ -74,27 +75,26 @@ services:
       - dream-trade-network
     restart: unless-stopped
 
-  # crawler-service:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.monorepo
-  #     args:
-  #       APP_NAME: crawler
-  #   image: dream-trade/crawler-service:latest
-  #   container_name: crawler-service
-  #   ports:
-  #     - "3002:3002"
-  #   environment:
-  #     PORT: 3002
-  #     MONGODB_URI: ${MONGODB_URI}
-  #     REDIS_URL: redis://redis:6379
-  #     NODE_ENV: production
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - dream-trade-network
-  #   restart: unless-stopped
+  # crawler-service
+  crawler-service:
+    build:
+      context: ./apps/crawler
+      dockerfile: Dockerfile
+    image: dream-trade/crawler-service:latest
+    container_name: crawler-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - dream-trade-network
+    restart: unless-stopped
 
   # ai-analysis-service:
   #   build:
