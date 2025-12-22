@@ -49,6 +49,7 @@ services:
   #     - dream-trade-network
   #   restart: unless-stopped
 
+  # auth-service
   auth-service:
     build:
       context: .
@@ -74,6 +75,7 @@ services:
       - dream-trade-network
     restart: unless-stopped
 
+  # crawler-service
   crawler-service:
     build:
       context: ./apps/crawler
