@@ -3,16 +3,16 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class TokenBlacklist extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ type: String, required: true, unique: true })
   token: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   userId: string;
 
   @Prop({ type: Date, required: true })
   expiresAt: Date;
 
-  @Prop()
+  @Prop({ type: Date })
   createdAt: Date;
 }
 

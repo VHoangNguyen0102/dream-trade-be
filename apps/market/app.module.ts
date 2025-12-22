@@ -10,7 +10,9 @@ import { MarketModule } from './market/market.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/market-service',
+      process.env.MARKET_MONGODB_URI || 
+      process.env.MONGODB_URI || 
+      'mongodb://localhost:27017/market-service',
     ),
     ScheduleModule.forRoot(),
     MarketModule,
