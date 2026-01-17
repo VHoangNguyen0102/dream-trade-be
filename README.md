@@ -80,6 +80,64 @@ npm test -- market
 npm run test:cov
 ```
 
+## 📝 Database Migrations
+
+Mỗi service quản lý migrations riêng theo nguyên tắc **Database per Service**.
+
+### Cấu trúc
+
+```
+apps/
+├── auth/migrations/         # Auth service migrations
+│   └── 003-add-user-name.migration.ts
+├── market/migrations/       # Market service migrations (if needed)
+└── .../
+```
+
+### Chạy migrations
+
+```bash
+# Auth service
+cd apps/auth
+npm run migrate:up    # Apply migration
+npm run migrate:down  # Rollback migration
+```
+
+### Tạo migration mới
+
+```typescript
+// apps/<service>/migrations/XXX-description.migration.ts
+import { BaseMigration, IMigrationContext } from '@app/database';
+
+export class MyMigration extends BaseMigration {
+  protected readonly name = 'XXX-description';
+
+  async up(context: IMigrationContext): Promise<void> {
+    const Model = context.getModel('ModelName');
+    // Migration logic
+  }
+
+  async down(context: IMigrationContext): Promise<void> {
+    // Rollback logic
+  }
+}
+
+// Auto-run when executed directly
+if (require.main === module) {
+  const { AppModule } = require('../app.module');
+  const migration = new MyMigration();
+  const direction = process.argv[2] === 'down' ? 'down' : 'up';
+  migration.run(AppModule, direction)
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
+}
+```
+
+> **Best Practice:** Mỗi service có migrations riêng để đảm bảo tính độc lập và khả năng scale.
+
 ## 🛠️ Development
 
 ### Tạo service mới

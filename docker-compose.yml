@@ -7,6 +7,7 @@ networks:
 volumes:
   redis-data:
 
+
 services:
   # MongoDB on Cloud - No need for local container
   # Already using MongoDB Atlas: mongodb+srv://...
@@ -20,7 +21,7 @@ services:
     networks:
       - dream-trade-network
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD', 'redis-cli', 'ping' ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -74,28 +75,27 @@ services:
     networks:
       - dream-trade-network
     restart: unless-stopped
-
   # crawler-service
-  crawler-service:
-    build:
-      context: ./apps/crawler
-      dockerfile: Dockerfile
-    image: dream-trade/crawler-service:latest
-    container_name: crawler-service
-    ports:
-      - "3002:3002"
-    environment:
-      PORT: 3002
-      MONGODB_URI: ${MONGODB_URI}
-      MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
+  # crawler-service:
+  #   build:
+  #     context: ./apps/crawler
+  #     dockerfile: Dockerfile
+  #   image: dream-trade/crawler-service:latest
+  #   container_name: crawler-service
+  #   ports:
+  #     - "3002:3002"
+  #   environment:
+  #     PORT: 3002
+  #     MONGODB_URI: ${MONGODB_URI}
+  #     MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
+  #     REDIS_URL: redis://redis:6379
+  #     NODE_ENV: production
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
 
   # ai-analysis-service:
   #   build:
