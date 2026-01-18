@@ -7,6 +7,7 @@ networks:
 volumes:
   redis-data:
 
+
 services:
   # MongoDB on Cloud - No need for local container
   # Already using MongoDB Atlas: mongodb+srv://...
@@ -20,34 +21,34 @@ services:
     networks:
       - dream-trade-network
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD', 'redis-cli', 'ping' ]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  # ========== ONLY AUTH SERVICE ACTIVE ==========
+  # ========== MARKET SERVICE ==========
 
-  # market-service:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.monorepo
-  #     args:
-  #       APP_NAME: market
-  #   image: dream-trade/market-service:latest
-  #   container_name: market-service
-  #   ports:
-  #     - "3001:3001"
-  #   environment:
-  #     PORT: 3001
-  #     MONGODB_URI: ${MONGODB_URI}
-  #     REDIS_URL: redis://redis:6379
-  #     NODE_ENV: production
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - dream-trade-network
-  #   restart: unless-stopped
+  market-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+      args:
+        APP_NAME: market
+    image: dream-trade/market-service:latest
+    container_name: market-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - dream-trade-network
+    restart: unless-stopped
 
   # auth-service
   auth-service:
@@ -96,7 +97,6 @@ services:
     networks:
       - dream-trade-network
     restart: unless-stopped
-
   # ai-analysis-service:
   #   build:
   #     context: .
