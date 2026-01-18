@@ -3,18 +3,18 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseModule } from '@app/database';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
-import { User, UserSchema } from './schemas/user.schema';
-import { UserSession, UserSessionSchema } from './schemas/user-session.schema';
-import { TokenBlacklist, TokenBlacklistSchema } from './schemas/token-blacklist.schema';
-import { UserService } from './services/user.service';
-import { UserSessionService } from './services/user-session.service';
-import { TokenBlacklistService } from './services/token-blacklist.service';
-import { GoogleAuthService } from './services/google-auth.service';
-import { UserRepository } from './repositories/user.repository';
+import { AuthController } from '../auth_controllers/auth.controller';
+import { AuthService } from '../auth_services/auth.service';
+import { JwtStrategy } from '../strategies/jwt.strategy';
+import { LocalStrategy } from '../strategies/local.strategy';
+import { User, UserSchema } from '../schemas/user.schema';
+import { UserSession, UserSessionSchema } from '../schemas/user-session.schema';
+import { TokenBlacklist, TokenBlacklistSchema } from '../schemas/token-blacklist.schema';
+import { UserService } from '../services/user.service';
+import { UserSessionService } from '../services/user-session.service';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
+import { GoogleAuthService } from '../services/google-auth.service';
+import { UserRepository } from '../repositories/user.repository';
 
 @Module({
   imports: [
@@ -35,4 +35,4 @@ import { UserRepository } from './repositories/user.repository';
   controllers: [AuthController],
   exports: [AuthService, UserService],
 })
-export class AuthModule {}
+export class AuthModule { }
