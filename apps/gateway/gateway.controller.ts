@@ -39,6 +39,14 @@ export class GatewayController {
   }
 
   /**
+   * Route all /subscriptions/* requests to Subscription Service
+   */
+  @All('subscriptions/*')
+  async proxySubscription(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.proxy(req, res, 'subscription-service');
+  }
+
+  /**
    * Health check
    */
   @All('health')

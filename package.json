@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "nest build",
-    "build:all": "nest build market && nest build auth && nest build crawler && nest build gateway && nest build ai-analysis && nest build realtime",
+    "build:all": "nest build market && nest build auth && nest build crawler && nest build gateway && nest build ai-analysis && nest build realtime && nest build subscription",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -22,6 +22,7 @@
     "start:gateway": "nest start gateway --watch",
     "start:ai-analysis": "nest start ai-analysis --watch",
     "start:realtime": "nest start realtime --watch",
+    "start:subscription": "nest start subscription --watch",
     "lint": "eslint \"{apps,libs}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
