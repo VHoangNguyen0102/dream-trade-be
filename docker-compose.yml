@@ -6,6 +6,7 @@ networks:
 
 volumes:
   redis-data:
+  ai-models:
 
 
 services:
@@ -42,7 +43,11 @@ services:
       PORT: 3001
       MONGODB_URI: ${MONGODB_URI}
       REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+      NODE_ENV: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: bun run start:market
     depends_on:
       redis:
         condition: service_healthy
@@ -91,32 +96,50 @@ services:
       MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
+    volumes:
+      - ./apps/crawler:/app
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - dream-trade-network
     restart: unless-stopped
-  # ai-analysis-service:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.monorepo
-  #     args:
-  #       APP_NAME: ai-analysis
-  #   image: dream-trade/ai-analysis-service:latest
-  #   container_name: ai-analysis-service
-  #   ports:
-  #     - "3003:3003"
-  #   environment:
-  #     PORT: 3003
-  #     REDIS_URL: redis://redis:6379
-  #     NODE_ENV: production
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - dream-trade-network
-  #   restart: unless-stopped
+
+  # ai-analysis-service (Python FastAPI)
+  ai-analysis-service:
+    build:
+      context: ./apps/ai-analysis
+      dockerfile: Dockerfile
+    image: dream-trade/ai-analysis-service:latest
+    container_name: ai-analysis-service
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
+      REDIS_URL: redis://redis:6379
+      MARKET_API_URL: http://market-service:3001/market
+      USE_PRETRAINED: "true"
+      HOST: 0.0.0.0
+      PORT: 8000
+      LOG_LEVEL: INFO
+    volumes:
+      - ./apps/ai-analysis:/app
+      - ai-models:/app/models
+    depends_on:
+      redis:
+        condition: service_healthy
+      market-service:
+        condition: service_started
+    networks:
+      - dream-trade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # realtime-service:
   #   build:
@@ -153,13 +176,13 @@ services:
   #     PORT: 3000
   #     MARKET_SERVICE_URL: http://market-service:3001
   #     CRAWLER_SERVICE_URL: http://crawler-service:3002
-  #     # AI_SERVICE_URL: http://ai-analysis-service:3003
+  #     AI_ANALYSIS_URL: http://ai-analysis-service:8000
   #     AUTH_SERVICE_URL: http://auth-service:3005
   #     NODE_ENV: production
   #   depends_on:
   #     - market-service
   #     - crawler-service
-  #     # - ai-analysis-service
+  #     - ai-analysis-service
   #     - auth-service
   #   networks:
   #     - dream-trade-network
