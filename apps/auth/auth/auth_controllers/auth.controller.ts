@@ -40,8 +40,8 @@ export class AuthController {
 
     this.logger.log(`User registered successfully: ${result.user.id}`);
 
-    // Only return user info, not tokens
-    return { user: result.user };
+    // Return user info and tokens (tokens in response body for flexibility)
+    return result;
   }
 
   @Post('login')
@@ -65,8 +65,8 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Only return user info
-    return { user: result.user };
+    // Return user info and tokens (tokens in response body for flexibility)
+    return result;
   }
 
   @Post('refresh')

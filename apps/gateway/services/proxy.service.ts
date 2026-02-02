@@ -12,6 +12,7 @@ export class ProxyService {
     'news-crawler-service': process.env.CRAWLER_SERVICE_URL || 'http://localhost:3002',
     'ai-analysis-service': process.env.AI_SERVICE_URL || 'http://localhost:3003',
     'auth-service': process.env.AUTH_SERVICE_URL || 'http://localhost:3005',
+    'subscription-service': process.env.SUBSCRIPTION_SERVICE_URL || 'http://localhost:3006',
   };
 
   constructor(private readonly httpService: HttpService) {}
