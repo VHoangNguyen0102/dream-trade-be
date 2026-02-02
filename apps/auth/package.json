@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "migrate:up": "ts-node -r tsconfig-paths/register migrations/001-cleanup-user-schema.migration.ts up",
-    "migrate:down": "ts-node -r tsconfig-paths/register migrations/001-cleanup-user-schema.migration.ts down"
+    "migrate:up": "ts-node -r tsconfig-paths/register migrations/003-add-user-name.migration.ts up",
+    "migrate:down": "ts-node -r tsconfig-paths/register migrations/003-add-user-name.migration.ts down"
   }
 }

@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UserService } from './services/user.service';
-import { UserSessionService } from './services/user-session.service';
-import { TokenBlacklistService } from './services/token-blacklist.service';
-import { GoogleAuthService } from './services/google-auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { GoogleLoginDto } from './dto/google-login.dto';
+import { UserService } from '../services/user.service';
+import { UserSessionService } from '../services/user-session.service';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
+import { GoogleAuthService } from '../services/google-auth.service';
+import { RegisterDto } from '../dto/register.dto';
+import { LoginDto } from '../dto/login.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
+import { GoogleLoginDto } from '../dto/google-login.dto';
 
 interface JwtPayload {
   sub: string;
