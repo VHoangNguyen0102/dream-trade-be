@@ -14,9 +14,12 @@ export class UserRepository extends BaseRepository<User> {
 
   /**
    * Tìm user theo email (không bao gồm user đã xóa)
+   * Note: Includes password field for authentication purposes
    */
   async findByEmail(email: string): Promise<User | null> {
-    return this.findOne({ email, isDeleted: false });
+    const query = { email, isDeleted: false };
+    const user = await this.model.findOne(query).select('+password').exec();
+    return user;
   }
 
   /**
@@ -69,5 +72,63 @@ export class UserRepository extends BaseRepository<User> {
     }
 
     return this.findWithPagination(query, page, limit, { createdAt: -1 });
+  }
+
+  /**
+   * Tìm user theo Google ID
+   */
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.findOne({ googleId });
+  }
+
+  /**
+   * Update password
+   */
+  async updatePassword(userId: string, hashedPassword: string): Promise<User | null> {
+    return this.updateById(userId, { password: hashedPassword });
+  }
+
+  /**
+   * Update user info (avatar, firstName, lastName)
+   */
+  async updateUserInfo(
+    userId: string,
+    updates: { avatar?: string; firstName?: string; lastName?: string }
+  ): Promise<User | null> {
+    return this.updateById(userId, updates);
+  }
+
+  /**
+   * Link Google account to existing user
+   */
+  async linkGoogleAccount(
+    userId: string,
+    googleData: { googleId: string; avatar: string; isVerified: boolean }
+  ): Promise<User | null> {
+    return this.updateById(userId, googleData);
+  }
+
+  /**
+   * Create user from Google OAuth
+   */
+  async createGoogleUser(userData: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    googleId: string;
+    avatar: string;
+    isVerified: boolean;
+  }): Promise<User> {
+    return this.create({
+      ...userData,
+      email: userData.email.toLowerCase(),
+    });
+  }
+
+  /**
+   * Find all users with optional limit
+   */
+  async findAll(limit: number = 100): Promise<User[]> {
+    return this.find({}, { limit });
   }
 }
