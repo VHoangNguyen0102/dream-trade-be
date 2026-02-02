@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 networks:
   dream-trade-network:
@@ -8,7 +8,6 @@ volumes:
   redis-data:
   ai-models:
 
-
 services:
   # MongoDB on Cloud - No need for local container
   # Already using MongoDB Atlas: mongodb+srv://...
@@ -16,13 +15,13 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - '6379:6379'
+      - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
       - dream-trade-network
     healthcheck:
-      test: [ 'CMD', 'redis-cli', 'ping' ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -65,7 +64,7 @@ services:
     image: dream-trade/auth-service:latest
     container_name: auth-service
     ports:
-      - '3005:3005'
+      - "3005:3005"
     environment:
       PORT: 3005
       MONGODB_URI: ${MONGODB_URI}
@@ -75,6 +74,28 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FRONTEND_URL: http://localhost:3000
+      NODE_ENV: production
+    networks:
+      - dream-trade-network
+    restart: unless-stopped
+
+  # subscription-service
+  subscription-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+      args:
+        APP_NAME: subscription
+    image: dream-trade/subscription-service:latest
+    container_name: subscription-service
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: http://localhost:3000
       NODE_ENV: production
     networks:

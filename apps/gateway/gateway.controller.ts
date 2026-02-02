@@ -1,6 +1,7 @@
-import { Controller, All, Req, Res } from '@nestjs/common';
+import { Controller, All, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ProxyService } from './services/proxy.service';
+import { VipForAnalysisGuard } from './guards/vip-for-analysis.guard';
 
 @Controller()
 export class GatewayController {
@@ -23,9 +24,10 @@ export class GatewayController {
   }
 
   /**
-   * Route all /analysis/* requests to AI Analysis Service
+   * Route all /analysis/* requests to AI Analysis Service (VIP only)
    */
   @All('analysis/*')
+  @UseGuards(VipForAnalysisGuard)
   async proxyAnalysis(@Req() req: Request, @Res() res: Response) {
     return this.proxyService.proxy(req, res, 'ai-analysis-service');
   }
