@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 networks:
   dream-trade-network:
@@ -15,13 +15,13 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     networks:
       - dream-trade-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -37,7 +37,7 @@ services:
     image: dream-trade/market-service:latest
     container_name: market-service
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       PORT: 3001
       MONGODB_URI: ${MONGODB_URI}
@@ -64,7 +64,7 @@ services:
     image: dream-trade/auth-service:latest
     container_name: auth-service
     ports:
-      - "3005:3005"
+      - '3005:3005'
     environment:
       PORT: 3005
       MONGODB_URI: ${MONGODB_URI}
@@ -90,7 +90,7 @@ services:
     image: dream-trade/subscription-service:latest
     container_name: subscription-service
     ports:
-      - "3006:3006"
+      - '3006:3006'
     environment:
       PORT: 3006
       MONGODB_URI: ${MONGODB_URI}
@@ -110,15 +110,13 @@ services:
     image: dream-trade/crawler-service:latest
     container_name: crawler-service
     ports:
-      - "3002:3002"
+      - '3002:3002'
     environment:
       PORT: 3002
       MONGODB_URI: ${MONGODB_URI}
       MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
       REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-    volumes:
-      - ./apps/crawler:/app
+      PYTHONPATH: /app
     depends_on:
       redis:
         condition: service_healthy
@@ -134,13 +132,13 @@ services:
     image: dream-trade/ai-analysis-service:latest
     container_name: ai-analysis-service
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       MONGODB_URI: ${MONGODB_URI}
       MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
       REDIS_URL: redis://redis:6379
       MARKET_API_URL: http://market-service:3001/market
-      USE_PRETRAINED: "true"
+      USE_PRETRAINED: 'true'
       HOST: 0.0.0.0
       PORT: 8000
       LOG_LEVEL: INFO
@@ -156,7 +154,7 @@ services:
       - dream-trade-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
       interval: 30s
       timeout: 10s
       retries: 3
