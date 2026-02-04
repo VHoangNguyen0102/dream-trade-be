@@ -58,6 +58,15 @@ export class AuthService {
     this.logger.log('Generating JWT tokens...');
     const tokens = await this.generateTokens(user._id.toString(), user.email);
 
+    // Create user session
+    await this.userSessionService.create({
+      userId: user._id.toString(),
+      token: tokens.refreshToken,
+      deviceType: 'web',
+      userAgent: 'Registration',
+      ipAddress: 'N/A',
+    });
+
     return {
       user: {
         id: user._id,
@@ -81,6 +90,15 @@ export class AuthService {
 
     // Generate tokens
     const tokens = await this.generateTokens(user._id.toString(), user.email);
+
+    // Create user session
+    await this.userSessionService.create({
+      userId: user._id.toString(),
+      token: tokens.refreshToken,
+      deviceType: 'web',
+      userAgent: 'Web Login',
+      ipAddress: 'N/A',
+    });
 
     return {
       user: {
@@ -133,7 +151,10 @@ export class AuthService {
       // Generate new tokens
       const tokens = await this.generateTokens(payload.sub, payload.email);
 
-      // Update session
+      // Blacklist old refresh token (Refresh Token Rotation)
+      await this.tokenBlacklistService.addToBlacklist(refreshToken, payload.sub);
+
+      // Update session with new refresh token
       await this.userSessionService.updateToken(session._id.toString(), tokens.refreshToken);
 
       return tokens;
@@ -145,12 +166,23 @@ export class AuthService {
   /**
    * Logout user
    */
-  async logout(userId: string, token: string) {
-    // Blacklist the token
-    await this.tokenBlacklistService.addToBlacklist(token, userId);
+  async logout(userId: string, accessToken: string, refreshToken?: string) {
+    // Blacklist access token
+    await this.tokenBlacklistService.addToBlacklist(accessToken, userId);
 
-    // Delete user sessions
-    await this.userSessionService.deleteByUserId(userId);
+    // Blacklist refresh token if provided
+    if (refreshToken) {
+      await this.tokenBlacklistService.addToBlacklist(refreshToken, userId);
+
+      // Delete only the session with this refresh token
+      const session = await this.userSessionService.findByToken(refreshToken);
+      if (session) {
+        await this.userSessionService.deleteById(session._id.toString());
+      }
+    } else {
+      // If no refresh token, delete all sessions (fallback)
+      await this.userSessionService.deleteByUserId(userId);
+    }
 
     return { message: 'Logged out successfully' };
   }

@@ -71,8 +71,34 @@ export class AuthController {
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @Request() req, @Res({ passthrough: true }) res: Response) {
+    // Get refresh token from cookie or body (cookie has priority)
+    const refreshToken = req.cookies?.refreshToken || refreshTokenDto.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error('Refresh token is required');
+    }
+
+    const result = await this.authService.refreshToken(refreshToken);
+
+    // Set new httpOnly cookies
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    this.logger.log('Tokens refreshed successfully');
+
+    return result;
   }
 
   @Post('logout')
@@ -80,8 +106,10 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and blacklist token' })
   async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
-    const token = req.cookies?.accessToken;
-    await this.authService.logout(req.user.sub, token);
+    const accessToken = req.cookies?.accessToken;
+    const refreshToken = req.cookies?.refreshToken;
+
+    await this.authService.logout(req.user.sub, accessToken, refreshToken);
 
     // Clear cookies with same options as when they were set
     const cookieOptions = {
