@@ -125,40 +125,40 @@ services:
     restart: unless-stopped
 
   # ai-analysis-service (Python FastAPI)
-  ai-analysis-service:
-    build:
-      context: ./apps/ai-analysis
-      dockerfile: Dockerfile
-    image: dream-trade/ai-analysis-service:latest
-    container_name: ai-analysis-service
-    ports:
-      - '8000:8000'
-    environment:
-      MONGODB_URI: ${MONGODB_URI}
-      MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
-      REDIS_URL: redis://redis:6379
-      MARKET_API_URL: http://market-service:3001/market
-      USE_PRETRAINED: 'true'
-      HOST: 0.0.0.0
-      PORT: 8000
-      LOG_LEVEL: INFO
-    volumes:
-      - ./apps/ai-analysis:/app
-      - ai-models:/app/models
-    depends_on:
-      redis:
-        condition: service_healthy
-      market-service:
-        condition: service_started
-    networks:
-      - dream-trade-network
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+  # ai-analysis-service:
+  #   build:
+  #     context: ./apps/ai-analysis
+  #     dockerfile: Dockerfile
+  #   image: dream-trade/ai-analysis-service:latest
+  #   container_name: ai-analysis-service
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     MONGODB_URI: ${MONGODB_URI}
+  #     MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
+  #     REDIS_URL: redis://redis:6379
+  #     MARKET_API_URL: http://market-service:3001/market
+  #     USE_PRETRAINED: "true"
+  #     HOST: 0.0.0.0
+  #     PORT: 8000
+  #     LOG_LEVEL: INFO
+  #   volumes:
+  #     - ./apps/ai-analysis:/app
+  #     - ai-models:/app/models
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     market-service:
+  #       condition: service_started
+  #   networks:
+  #     - dream-trade-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 60s
 
   # realtime-service:
   #   build:
@@ -181,28 +181,36 @@ services:
   #     - dream-trade-network
   #   restart: unless-stopped
 
-  # gateway:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.monorepo
-  #     args:
-  #       APP_NAME: gateway
-  #   image: dream-trade/gateway:latest
-  #   container_name: gateway
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     PORT: 3000
-  #     MARKET_SERVICE_URL: http://market-service:3001
-  #     CRAWLER_SERVICE_URL: http://crawler-service:3002
-  #     AI_ANALYSIS_URL: http://ai-analysis-service:8000
-  #     AUTH_SERVICE_URL: http://auth-service:3005
-  #     NODE_ENV: production
-  #   depends_on:
-  #     - market-service
-  #     - crawler-service
-  #     - ai-analysis-service
-  #     - auth-service
-  #   networks:
-  #     - dream-trade-network
-  #   restart: unless-stopped
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+      args:
+        APP_NAME: gateway
+    image: dream-trade/gateway:latest
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      MARKET_SERVICE_URL: http://market-service:3001
+      CRAWLER_SERVICE_URL: http://crawler-service:3002
+      AI_SERVICE_URL: http://host.docker.internal:3003
+      AUTH_SERVICE_URL: http://auth-service:3005
+      SUBSCRIPTION_SERVICE_URL: http://subscription-service:3006
+      FRONTEND_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    volumes:
+      # Mount source code for hot reload
+      - ./apps:/app/apps
+      - ./libs:/app/libs
+      # Don't mount node_modules (use container's version)
+      - /app/node_modules
+    depends_on:
+      - market-service
+      - auth-service
+      - subscription-service
+    networks:
+      - dream-trade-network
+    restart: unless-stopped
