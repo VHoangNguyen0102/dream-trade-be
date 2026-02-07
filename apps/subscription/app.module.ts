@@ -12,7 +12,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     // Option 1: Shared database với auth (recommended)
     // Dùng chung database 'dreamtrade' - collections sẽ tự động tạo khi có data
     DatabaseModule.forRoot(),
-    
+
     // Option 2: Separate database cho subscription (uncomment nếu muốn tách)
     // DatabaseModule.forRoot({
     //   useFactory: (configService: ConfigService) => ({
@@ -20,8 +20,8 @@ import { SubscriptionModule } from './subscription/subscription.module';
     //     dbName: process.env.SUBSCRIPTION_DB_NAME || 'subscription-service',
     //   }),
     // }),
-    
+
     SubscriptionModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

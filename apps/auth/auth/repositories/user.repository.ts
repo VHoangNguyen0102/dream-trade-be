@@ -23,6 +23,13 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   /**
+   * Tìm user theo ID kèm password (cho change-password)
+   */
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.model.findOne({ _id: id, isDeleted: false }).select('+password').exec();
+  }
+
+  /**
    * Tìm user active theo email
    */
   async findActiveByEmail(email: string): Promise<User | null> {
@@ -96,6 +103,13 @@ export class UserRepository extends BaseRepository<User> {
     updates: { avatar?: string; firstName?: string; lastName?: string }
   ): Promise<User | null> {
     return this.updateById(userId, updates);
+  }
+
+  /**
+   * Update account type (synced with subscription service)
+   */
+  async updateAccountType(userId: string, accountType: 'free' | 'vip'): Promise<User | null> {
+    return this.updateById(userId, { accountType });
   }
 
   /**

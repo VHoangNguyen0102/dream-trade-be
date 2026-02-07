@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseModule } from '@app/database';
 import { AuthController } from '../auth_controllers/auth.controller';
 import { AuthService } from '../auth_services/auth.service';
-import { JwtStrategy } from '../strategies/jwt.strategy';
-import { LocalStrategy } from '../strategies/local.strategy';
 import { User, UserSchema } from '../schemas/user.schema';
 import { UserSession, UserSessionSchema } from '../schemas/user-session.schema';
 import { TokenBlacklist, TokenBlacklistSchema } from '../schemas/token-blacklist.schema';
@@ -15,6 +12,7 @@ import { UserSessionService } from '../services/user-session.service';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
 import { GoogleAuthService } from '../services/google-auth.service';
 import { UserRepository } from '../repositories/user.repository';
+import { AccountTypeSyncService } from '../services/account-type-sync.service';
 
 @Module({
   imports: [
@@ -23,7 +21,6 @@ import { UserRepository } from '../repositories/user.repository';
       { name: UserSession.name, schema: UserSessionSchema },
       { name: TokenBlacklist.name, schema: TokenBlacklistSchema },
     ]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
@@ -31,7 +28,7 @@ import { UserRepository } from '../repositories/user.repository';
       }),
     }),
   ],
-  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, GoogleAuthService, UserRepository, LocalStrategy, JwtStrategy],
+  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, GoogleAuthService, UserRepository, AccountTypeSyncService],
   controllers: [AuthController],
   exports: [AuthService, UserService],
 })

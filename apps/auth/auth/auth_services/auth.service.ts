@@ -25,7 +25,7 @@ export class AuthService {
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly userSessionService: UserSessionService,
     private readonly googleAuthService: GoogleAuthService
-  ) {}
+  ) { }
 
   /**
    * Register new user
@@ -73,6 +73,7 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        accountType: user.accountType || 'free',
       },
       ...tokens,
     };
@@ -106,6 +107,7 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        accountType: user.accountType || 'free',
       },
       ...tokens,
     };
@@ -191,7 +193,7 @@ export class AuthService {
    * Change password
    */
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
-    const user = await this.userService.findById(userId);
+    const user = await this.userService.findByIdWithPassword(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -226,6 +228,11 @@ export class AuthService {
     return {
       id: user._id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+      isVerified: user.isVerified,
+      accountType: user.accountType || 'free',
       createdAt: user.createdAt,
     };
   }
@@ -289,8 +296,10 @@ export class AuthService {
         lastName: user.lastName,
         avatar: user.avatar,
         isVerified: user.isVerified,
+        accountType: user.accountType || 'free',
       },
       ...tokens,
     };
   }
+
 }

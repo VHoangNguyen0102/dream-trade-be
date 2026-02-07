@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { SubscriptionRepository } from './repositories/subscription.repository';
 import { BillingHistoryRepository } from './repositories/billing-history.repository';
+import { SubscriptionRedisService } from './services/redis.service';
 import { Subscription, SubscriptionPlan, SubscriptionStatus } from './schemas/subscription.schema';
 import { BillingHistory, BillingStatus } from './schemas/billing-history.schema';
 
@@ -89,7 +90,8 @@ export class SubscriptionService {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly billingHistoryRepository: BillingHistoryRepository,
-  ) {}
+    private readonly redisService: SubscriptionRedisService,
+  ) { }
 
   /**
    * Get user subscription, create free plan if not exists
@@ -172,6 +174,10 @@ export class SubscriptionService {
     }
 
     this.logger.log(`User ${userId} upgraded to VIP`);
+
+    // Sync account type to Auth Service
+    await this.syncAccountType(userId, 'vip');
+
     return this.mapSubscriptionToInfo(subscription);
   }
 
@@ -187,7 +193,24 @@ export class SubscriptionService {
 
     const subscription = await this.subscriptionRepository.cancelSubscription(userId);
     this.logger.log(`User ${userId} cancelled subscription`);
+
+    // Sync account type to Auth Service
+    await this.syncAccountType(userId, 'free');
+
     return this.mapSubscriptionToInfo(subscription);
+  }
+
+  /**
+   * Sync account type to Auth Service via Redis Pub/Sub
+   */
+  private async syncAccountType(userId: string, accountType: 'free' | 'vip'): Promise<void> {
+    try {
+      await this.redisService.publishAccountTypeChange(userId, accountType);
+      this.logger.log(`Published accountType=${accountType} change for user ${userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to publish accountType change: ${error.message}`);
+      // Don't throw - subscription change should still succeed even if sync fails
+    }
   }
 
   /**

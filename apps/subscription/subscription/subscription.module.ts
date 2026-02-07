@@ -7,6 +7,7 @@ import { BillingHistory, BillingHistorySchema } from './schemas/billing-history.
 import { SubscriptionRepository } from './repositories/subscription.repository';
 import { BillingHistoryRepository } from './repositories/billing-history.repository';
 import { InternalAuthGuard } from './guards/internal-auth.guard';
+import { SubscriptionRedisService } from './services/redis.service';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { InternalAuthGuard } from './guards/internal-auth.guard';
     SubscriptionRepository,
     BillingHistoryRepository,
     InternalAuthGuard,
+    SubscriptionRedisService,
   ],
   exports: [SubscriptionService],
 })
-export class SubscriptionModule {}
+export class SubscriptionModule { }

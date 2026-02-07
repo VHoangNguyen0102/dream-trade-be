@@ -18,6 +18,10 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userRepository.findByIdWithPassword(id);
+  }
+
   async findByGoogleId(googleId: string): Promise<User | null> {
     return this.userRepository.findByGoogleId(googleId);
   }
@@ -28,6 +32,14 @@ export class UserService {
 
   async updateUserInfo(userId: string, updates: { avatar?: string; firstName?: string; lastName?: string }): Promise<User> {
     const user = await this.userRepository.updateUserInfo(userId, updates);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
+  async updateAccountType(userId: string, accountType: 'free' | 'vip'): Promise<User> {
+    const user = await this.userRepository.updateAccountType(userId, accountType);
     if (!user) {
       throw new Error('User not found');
     }

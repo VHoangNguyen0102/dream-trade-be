@@ -7,15 +7,14 @@ import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { InternalAuthGuard } from '../guards/internal-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -103,7 +102,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and blacklist token' })
   async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
@@ -127,7 +126,7 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
@@ -135,7 +134,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   async getProfile(@Request() req) {
@@ -143,7 +142,7 @@ export class AuthController {
   }
 
   @Get('sessions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user active sessions' })
   async getSessions(@Request() req) {
