@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res, BadRequestException, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from '../auth_services/auth.service';
@@ -14,7 +14,7 @@ import { InternalAuthGuard } from '../guards/internal-auth.guard';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -147,22 +147,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Get user active sessions' })
   async getSessions(@Request() req) {
     return this.authService.getUserSessions(req.user.sub);
-  }
-
-  /**
-   * Internal API - called by Subscription Service to sync account type
-   * This endpoint is protected by Docker network (only accessible from other services)
-   */
-  @Patch('internal/account-type/:userId')
-  @ApiOperation({ summary: '[Internal] Update user account type (called by subscription service)' })
-  async updateAccountType(
-    @Param('userId') userId: string,
-    @Body('accountType') accountType: 'free' | 'vip',
-  ) {
-    if (!accountType || !['free', 'vip'].includes(accountType)) {
-      throw new BadRequestException('accountType must be "free" or "vip"');
-    }
-    return this.authService.updateAccountType(userId, accountType);
   }
 
   @Post('google')

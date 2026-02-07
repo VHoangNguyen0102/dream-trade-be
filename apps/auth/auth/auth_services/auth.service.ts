@@ -25,7 +25,7 @@ export class AuthService {
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly userSessionService: UserSessionService,
     private readonly googleAuthService: GoogleAuthService
-  ) {}
+  ) { }
 
   /**
    * Register new user
@@ -302,15 +302,4 @@ export class AuthService {
     };
   }
 
-  /**
-   * Update account type (called by subscription service via internal API)
-   */
-  async updateAccountType(userId: string, accountType: 'free' | 'vip') {
-    const user = await this.userService.updateAccountType(userId, accountType);
-    return {
-      message: `Account type updated to ${accountType}`,
-      userId,
-      accountType: user.accountType,
-    };
-  }
 }

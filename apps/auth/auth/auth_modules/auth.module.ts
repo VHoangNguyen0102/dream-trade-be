@@ -12,6 +12,7 @@ import { UserSessionService } from '../services/user-session.service';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
 import { GoogleAuthService } from '../services/google-auth.service';
 import { UserRepository } from '../repositories/user.repository';
+import { AccountTypeSyncService } from '../services/account-type-sync.service';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { UserRepository } from '../repositories/user.repository';
       }),
     }),
   ],
-  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, GoogleAuthService, UserRepository],
+  providers: [AuthService, UserService, UserSessionService, TokenBlacklistService, GoogleAuthService, UserRepository, AccountTypeSyncService],
   controllers: [AuthController],
   exports: [AuthService, UserService],
 })

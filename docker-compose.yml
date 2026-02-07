@@ -8,7 +8,6 @@ volumes:
   redis-data:
   ai-models:
 
-
 services:
   # MongoDB on Cloud - No need for local container
   # Already using MongoDB Atlas: mongodb+srv://...
@@ -22,7 +21,7 @@ services:
     networks:
       - dream-trade-network
     healthcheck:
-      test: [ 'CMD', 'redis-cli', 'ping' ]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -102,8 +101,11 @@ services:
       MONGODB_DB_NAME: ${MONGODB_DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: http://localhost:3000
-      AUTH_SERVICE_URL: http://auth-service:3005
+      REDIS_URL: redis://redis:6379
       NODE_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - dream-trade-network
     restart: unless-stopped
@@ -138,13 +140,13 @@ services:
     image: dream-trade/ai-analysis-service:latest
     container_name: ai-analysis-service
     ports:
-      - "3003:3003"
+      - '3003:3003'
     environment:
       MONGODB_URI: ${MONGODB_URI}
       MONGODB_DATABASE: ${MONGODB_DATABASE_CRAWLER}
       REDIS_URL: redis://redis:6379
       MARKET_API_URL: http://market-service:3001/market
-      USE_PRETRAINED: "true"
+      USE_PRETRAINED: 'true'
       HOST: 0.0.0.0
       PORT: 3003
       LOG_LEVEL: INFO
@@ -160,7 +162,7 @@ services:
       - dream-trade-network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3003/health" ]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3003/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -196,7 +198,7 @@ services:
     image: dream-trade/gateway:latest
     container_name: gateway
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       PORT: 8080
       MARKET_SERVICE_URL: http://market-service:3001

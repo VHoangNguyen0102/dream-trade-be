@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
 import { DatabaseModule } from '@app/database';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionService } from './subscription.service';
@@ -8,6 +7,7 @@ import { BillingHistory, BillingHistorySchema } from './schemas/billing-history.
 import { SubscriptionRepository } from './repositories/subscription.repository';
 import { BillingHistoryRepository } from './repositories/billing-history.repository';
 import { InternalAuthGuard } from './guards/internal-auth.guard';
+import { SubscriptionRedisService } from './services/redis.service';
 
 @Module({
   imports: [
@@ -15,7 +15,6 @@ import { InternalAuthGuard } from './guards/internal-auth.guard';
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: BillingHistory.name, schema: BillingHistorySchema },
     ]),
-    HttpModule,
   ],
   controllers: [SubscriptionController],
   providers: [
@@ -23,7 +22,8 @@ import { InternalAuthGuard } from './guards/internal-auth.guard';
     SubscriptionRepository,
     BillingHistoryRepository,
     InternalAuthGuard,
+    SubscriptionRedisService,
   ],
   exports: [SubscriptionService],
 })
-export class SubscriptionModule {}
+export class SubscriptionModule { }
