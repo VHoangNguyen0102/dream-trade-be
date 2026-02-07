@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from '../auth_services/auth.service';
@@ -76,7 +76,7 @@ export class AuthController {
     const refreshToken = req.cookies?.refreshToken || refreshTokenDto.refreshToken;
 
     if (!refreshToken) {
-      throw new Error('Refresh token is required');
+      throw new BadRequestException('Refresh token is required - provide via cookie or request body');
     }
 
     const result = await this.authService.refreshToken(refreshToken);
@@ -97,6 +97,7 @@ export class AuthController {
     });
 
     this.logger.log('Tokens refreshed successfully');
+    this.logger.log('Result refresh token:', result);
 
     return result;
   }
