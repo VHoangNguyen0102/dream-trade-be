@@ -1,4 +1,6 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { SubscriptionRepository } from './repositories/subscription.repository';
 import { BillingHistoryRepository } from './repositories/billing-history.repository';
 import { Subscription, SubscriptionPlan, SubscriptionStatus } from './schemas/subscription.schema';
@@ -89,6 +91,7 @@ export class SubscriptionService {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly billingHistoryRepository: BillingHistoryRepository,
+    private readonly httpService: HttpService,
   ) {}
 
   /**
@@ -172,6 +175,10 @@ export class SubscriptionService {
     }
 
     this.logger.log(`User ${userId} upgraded to VIP`);
+
+    // Sync account type to Auth Service
+    await this.syncAccountType(userId, 'vip');
+
     return this.mapSubscriptionToInfo(subscription);
   }
 
@@ -187,7 +194,30 @@ export class SubscriptionService {
 
     const subscription = await this.subscriptionRepository.cancelSubscription(userId);
     this.logger.log(`User ${userId} cancelled subscription`);
+
+    // Sync account type to Auth Service
+    await this.syncAccountType(userId, 'free');
+
     return this.mapSubscriptionToInfo(subscription);
+  }
+
+  /**
+   * Sync account type to Auth Service via internal API
+   */
+  private async syncAccountType(userId: string, accountType: 'free' | 'vip'): Promise<void> {
+    try {
+      const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://auth-service:3005';
+      await firstValueFrom(
+        this.httpService.patch(
+          `${authServiceUrl}/auth/internal/account-type/${userId}`,
+          { accountType },
+        ),
+      );
+      this.logger.log(`Synced accountType=${accountType} to Auth Service for user ${userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to sync accountType to Auth Service: ${error.message}`);
+      // Don't throw - subscription change should still succeed even if sync fails
+    }
   }
 
   /**

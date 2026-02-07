@@ -102,6 +102,7 @@ services:
       MONGODB_DB_NAME: ${MONGODB_DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: http://localhost:3000
+      AUTH_SERVICE_URL: http://auth-service:3005
       NODE_ENV: production
     networks:
       - dream-trade-network

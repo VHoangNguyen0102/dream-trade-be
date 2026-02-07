@@ -29,6 +29,9 @@ export class User extends BaseSchema {
 
   @Prop({ type: Boolean, default: false }) // Email verification status
   isVerified: boolean;
+
+  @Prop({ type: String, enum: ['free', 'vip'], default: 'free' }) // Account type synced with subscription
+  accountType: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

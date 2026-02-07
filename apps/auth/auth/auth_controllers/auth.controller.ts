@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Logger, Res, BadRequestException, Patch, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from '../auth_services/auth.service';
@@ -7,8 +7,7 @@ import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { InternalAuthGuard } from '../guards/internal-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -103,7 +102,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and blacklist token' })
   async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
@@ -127,7 +126,7 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
@@ -135,7 +134,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   async getProfile(@Request() req) {
@@ -143,11 +142,27 @@ export class AuthController {
   }
 
   @Get('sessions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(InternalAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user active sessions' })
   async getSessions(@Request() req) {
     return this.authService.getUserSessions(req.user.sub);
+  }
+
+  /**
+   * Internal API - called by Subscription Service to sync account type
+   * This endpoint is protected by Docker network (only accessible from other services)
+   */
+  @Patch('internal/account-type/:userId')
+  @ApiOperation({ summary: '[Internal] Update user account type (called by subscription service)' })
+  async updateAccountType(
+    @Param('userId') userId: string,
+    @Body('accountType') accountType: 'free' | 'vip',
+  ) {
+    if (!accountType || !['free', 'vip'].includes(accountType)) {
+      throw new BadRequestException('accountType must be "free" or "vip"');
+    }
+    return this.authService.updateAccountType(userId, accountType);
   }
 
   @Post('google')

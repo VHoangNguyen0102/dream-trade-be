@@ -37,8 +37,30 @@ export class GatewayController {
   }
 
   /**
-   * Route all /auth/* requests to Auth Service (PUBLIC)
-   * Auth service handles its own authentication internally
+   * Protected auth routes - Gateway verifies JWT first, injects X-User-Id
+   */
+  @All('auth/change-password')
+  async proxyAuthChangePassword(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.proxy(req, res, 'auth-service');
+  }
+
+  @All('auth/logout')
+  async proxyAuthLogout(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.proxy(req, res, 'auth-service');
+  }
+
+  @All('auth/profile')
+  async proxyAuthProfile(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.proxy(req, res, 'auth-service');
+  }
+
+  @All('auth/sessions')
+  async proxyAuthSessions(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.proxy(req, res, 'auth-service');
+  }
+
+  /**
+   * Public auth routes (login, register, refresh, google) - catch-all
    */
   @All('auth/*')
   @Public()
