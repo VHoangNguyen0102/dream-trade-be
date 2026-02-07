@@ -5,12 +5,18 @@ import {
   Injectable,
   Logger,
   ServiceUnavailableException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
 
+/**
+ * VipForAnalysisGuard - Checks if user has VIP subscription
+ * 
+ * NOTE: This guard runs AFTER GatewayAuthGuard (global guard),
+ * so JWT is already verified and X-User-Id is injected into headers.
+ * This guard only checks the subscription plan.
+ */
 @Injectable()
 export class VipForAnalysisGuard implements CanActivate {
   private readonly logger = new Logger(VipForAnalysisGuard.name);
@@ -22,41 +28,30 @@ export class VipForAnalysisGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const authHeader = request.headers.authorization;
-    const cookieHeader = request.headers.cookie;
 
-    if (!authHeader && !cookieHeader) {
-      throw new UnauthorizedException('Authentication required');
-    }
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (authHeader) {
-      headers['Authorization'] = authHeader;
-    }
-    if (cookieHeader) {
-      headers['Cookie'] = cookieHeader;
+    // User info already verified and injected by GatewayAuthGuard
+    const userId = request.headers['x-user-id'] as string;
+    if (!userId) {
+      throw new ForbiddenException('User identity not found');
     }
 
     try {
+      // Call Subscription Service with X-User-Id header (no JWT needed internally)
       const url = `${this.subscriptionServiceUrl}/subscriptions/me`;
       const response = await firstValueFrom(
         this.httpService.get(url, {
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': userId,
+            'x-user-email': request.headers['x-user-email'] as string || '',
+          },
           validateStatus: () => true,
         }),
       );
 
-      if (response.status === 401) {
-        throw new UnauthorizedException(
-          response.data?.message || 'Invalid or expired token',
-        );
-      }
-
       if (response.status !== 200) {
         this.logger.warn(
-          `Subscription service returned ${response.status} for /subscriptions/me`,
+          `Subscription service returned ${response.status} for user ${userId}`,
         );
         throw new ServiceUnavailableException(
           'Unable to verify subscription. Please try again later.',
@@ -73,7 +68,6 @@ export class VipForAnalysisGuard implements CanActivate {
       return true;
     } catch (error: unknown) {
       if (
-        error instanceof UnauthorizedException ||
         error instanceof ForbiddenException ||
         error instanceof ServiceUnavailableException
       ) {

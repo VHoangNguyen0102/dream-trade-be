@@ -53,16 +53,19 @@ export class ProxyService {
       // Prepare headers - remove problematic ones
       const { host, 'content-length': _, ...forwardHeaders } = req.headers as any;
 
+      // Ensure X-User-Id and X-User-Email are forwarded (injected by GatewayAuthGuard)
+      const headersToForward: Record<string, string> = {
+        ...forwardHeaders,
+        host: new URL(serviceUrl).host,
+      };
+
       // Forward request
       const response = await firstValueFrom(
         this.httpService.request({
           method: req.method,
           url: targetUrl,
           data: req.body,
-          headers: {
-            ...forwardHeaders,
-            host: new URL(serviceUrl).host,
-          },
+          headers: headersToForward,
           params: req.query, // Axios will properly encode query params
         })
       );

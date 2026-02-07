@@ -2,11 +2,11 @@ import { Controller, Get, Post, Param, Body, Request, UseGuards, Logger, NotFoun
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { SubscriptionService } from './subscription.service';
 import { UpgradeSubscriptionDto } from './dto/upgrade-subscription.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { InternalAuthGuard } from './guards/internal-auth.guard';
 
 @ApiTags('subscriptions')
 @Controller('subscriptions')
-@UseGuards(JwtAuthGuard)
+@UseGuards(InternalAuthGuard)
 @ApiBearerAuth()
 export class SubscriptionController {
   private readonly logger = new Logger(SubscriptionController.name);
